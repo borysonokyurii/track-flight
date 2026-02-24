@@ -20,6 +20,64 @@ Every tool in this stack was deliberately chosen to mimic a production-grade ent
 ## The Data Journey
 The pipeline is structured according to the Medallion architecture, ensuring clear data lineage and incremental refinement:
 
+```mermaid
+flowchart LR
+    subgraph API
+        direction LR
+        API_S["Schiphol Flight API"]
+        API_W["Open-Meteo API"]
+    end
+
+    subgraph ETL
+        direction LR
+        AirFlow
+    end
+
+    subgraph Storage
+        direction LR
+        MinIO
+    end
+
+    subgraph DWH
+        direction LR
+        subgraph PostgreSQL
+            direction LR
+            subgraph model
+                direction LR
+                raw["Raw Layer (JSONB)"]
+                silver["Silver Layer (Staging)"]
+                gold["Gold Layer (Fact)"]
+            end
+        end
+    end
+
+    subgraph BI
+        direction LR
+        Tableau
+    end
+
+    API_S -->|Extract Flights Data| AirFlow
+    API_W -->|Extract Weather Data| AirFlow
+    
+    AirFlow -->|Load Raw JSON| MinIO
+    
+    MinIO -->|Extract Data| AirFlow
+    AirFlow -->|Load Data to Raw Layer| raw
+    
+    raw -->|dbt Parse & Deduplicate| silver
+    silver -->|dbt Transform & Model| gold
+    
+    gold -->|Visualize Data| Tableau
+
+    style API fill: #FFD1DC, stroke: #000000, stroke-width: 2px
+    style ETL fill: #D9E5E4, stroke: #000000, stroke-width: 2px
+    style Storage fill: #FFF2CC, stroke: #000000, stroke-width: 2px
+    style DWH fill: #C9DAF7, stroke: #000000, stroke-width: 2px
+    style PostgreSQL fill: #E2F0CB, stroke: #000000, stroke-width: 2px
+    style BI fill: #B69CFA, stroke: #000000, stroke-width: 2px
+```
+
+
 ### 1. Bronze Layer (Extract & Load)
 * **API Integration:** Airflow DAGs execute Python tasks to pull data from **Schiphol Public API** (flights) and **Open-Meteo API** (weather)
 * **Landing Zone:** Raw JSON responses are saved to MinIO using date-based partitioning for efficient storage and retrieval
@@ -61,4 +119,6 @@ Reliability is enforced through a multi-layered testing framework:
 ## Analytics & BI Ready
 The final output is a clean, denormalized semantic layer optimized for BI tools. Analysts can connect directly to the PostgreSQL Gold schema to visualize:
 
-![Average precipitation](visualizations/Average_precipitation.png)
+![Average precipitation](visualization/Average_precipitation.png)
+
+
