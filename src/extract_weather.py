@@ -1,3 +1,4 @@
+import requests
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 import json
 import logging

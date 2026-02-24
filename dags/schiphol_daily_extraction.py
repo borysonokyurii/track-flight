@@ -19,7 +19,7 @@ default_args = {
     'retries': 2,
     'retry_delay': timedelta(minutes=5),
 }
-# --- Connection IDs (Injected via Docker environment variables) ---
+
 MINIO_CONN_ID = "minio_conn"
 DWH_CONN_ID = "dwh_conn"
 
@@ -89,7 +89,7 @@ with DAG(
     default_args=default_args,
     description='ELT: Extract to MinIO -> Load to Postgres',
     schedule_interval='@daily',
-    start_date=datetime(2026, 2, 10),
+    start_date=datetime(2026, 1, 2),
     catchup=True,
     tags=['bronze', 'silver', 'elt'],
 ) as dag:
