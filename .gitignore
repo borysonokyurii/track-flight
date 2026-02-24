@@ -2,3 +2,11 @@ __pycache__/
 .env
 logs/
 .DS_Store
+gcp-credentials.json
+.venv
+
+.airflow/
+airflow.cfg
+webserver_config.py
+dbt_packages/
+target/

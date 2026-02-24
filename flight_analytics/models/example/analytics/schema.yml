@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: fct_flights_weather
+    description: "Fact table combining Schiphol flights with weather conditions at landing time."
+    columns:
+      - name: flight_id
+        description: "Unique flight identifier."
+        tests:
+          - unique
+          - not_null
+      - name: actual_landing_time
+        description: "Actual time of landing. Cannot be null."
+        tests:
+          - not_null
+      - name: delay_minutes
+        description: "Delay time in minutes. Can be negative if the flight arrived early."
+        tests:
+          - not_null
+      - name: is_delayed
+        description: "Flag indicating whether the flight was delayed by more than 15 minutes."
+        tests:
+          - not_null
+      - name: is_foggy
+        description: "Flag indicating whether fog was present at landing time."
+        tests:
+          - not_null

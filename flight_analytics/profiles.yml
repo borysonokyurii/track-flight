@@ -1,0 +1,13 @@
+flight_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      user: dwh_user
+      password: dwh_password 
+      port: 5433
+      dbname: flights_dwh
+      schema: silver
+      threads: 4
+      keepalives_idle: 0

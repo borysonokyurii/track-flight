@@ -4,9 +4,11 @@ x-airflow-common: &airflow-common
   image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.8.1}
   environment: &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW_CONN_DWH_CONN: postgresql://dwh_user:dwh_password@postgres-dwh:5432/flights_dwh
+    AIRFLOW_CONN_MINIO_CONN: aws://admin:password123@?host=http%3A%2F%2Fminio%3A9000
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
@@ -15,24 +17,54 @@ x-airflow-common: &airflow-common
     - ./.env:/opt/airflow/.env
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
-    postgres:
+    postgres-airflow:
       condition: service_healthy
 
 services:
-  postgres:
+  postgres-airflow:
     image: postgres:13
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - postgres-airflow-volume:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "airflow" ]
       interval: 10s
       retries: 5
     ports:
+      - "5434:5432"
+
+  postgres-dwh:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: dwh_user
+      POSTGRES_PASSWORD: dwh_password
+      POSTGRES_DB: flights_dwh
+    volumes:
+      - postgres-dwh-volume:/var/lib/postgresql/data
+    ports:
       - "5433:5432"
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+
+  create-bucket:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c " sleep 5; mc alias set myminio http://minio:9000 admin password123; mc mb myminio/flight-weather-bronze || true; "
 
   airflow-webserver:
     <<: *airflow-common
@@ -50,4 +82,6 @@ services:
     command: scheduler
 
 volumes:
-  postgres-db-volume:
+  postgres-airflow-volume:
+  postgres-dwh-volume:
+  minio-data:
