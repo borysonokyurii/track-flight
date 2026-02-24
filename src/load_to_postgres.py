@@ -19,7 +19,6 @@ def load_json_to_postgres(
     
     try:
         s3_hook = S3Hook(aws_conn_id=minio_conn_id)
-        # s3_hook.read_key reads the object from S3 and returns a string
         file_content = s3_hook.read_key(key=minio_key, bucket_name=minio_bucket)
         json_data = json.loads(file_content)
     except Exception as e:

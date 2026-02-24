@@ -10,3 +10,4 @@ airflow.cfg
 webserver_config.py
 dbt_packages/
 target/
+architecture_diagram.md
