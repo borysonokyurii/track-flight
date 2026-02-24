@@ -61,4 +61,5 @@ Reliability is enforced through a multi-layered testing framework:
 ## Analytics & BI Ready
 The final output is a clean, denormalized semantic layer optimized for BI tools. Analysts can connect directly to the PostgreSQL Gold schema to visualize:
 
-![Average precipitation](visualizations/Average_precipitation.png)
+![Average precipitation](visualization/Average_precipitation.png)
+
